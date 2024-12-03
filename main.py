@@ -76,18 +76,25 @@ u.rename("u", "u")
 t = 0.0
 
 #file << u
-
+k = 0
 while t < t_end:
     print("t =", t, "end t=", t_end)
 
     # Compute
     solver.solve()
     plot(u)
-    # Save to file
-    #file << u
+    import matplotlib.pyplot as plt
+    if (k % 10 == 0):
+        plot(u, title=('Convection-Diffusion %g' % (t)))
+        plt.grid(True)
+        filename = ('convection_diffusion_%d.png' % (k))
+        plt.savefig(filename)
+        print('Graphics saved as "%s"' % (filename))
+        plt.close()
 
     # Move to next time step
     u0.assign(u)
     t += dt
+    k += 1
 
 qq = 0
