@@ -3,6 +3,7 @@ import time
 import os
 import math
 from dolfin import *
+from dolfin import UnitSquareMesh
 
 # get file name
 fileName = os.path.splitext(__file__)[0]
@@ -16,15 +17,16 @@ t_end = 10
 dt = 0.1
 
 # Create mesh and define function space
-mesh = RectangleMesh(0, 0, 1, 1, 40, 40, 'crossed')
+
+mesh = UnitSquareMesh( 40, 40)
 
 # Define function spaces
 V = FunctionSpace(mesh, "CG", 1)
 
 # ic= Expression("((pow(x[0]-0.25,2)+pow(x[1]-0.25,2))<0.2*0.2)?(-25*((pow(x[0]-0.25,2)+pow(x[1]-0.25,2))-0.2*0.2)):(0.0)")
-ic = Expression("((pow(x[0]-0.3,2)+pow(x[1]-0.3,2))<0.2*0.2)?(1.0):(0.0)", domain=mesh)
+ic = Expression("((pow(x[0]-0.3,2)+pow(x[1]-0.3,2))<0.2*0.2)?(1.0):(0.0)", domain=mesh,degree=1)
 
-b = Expression(("-(x[1]-0.5)", "(x[0]-0.5)"), domain=mesh)
+b = Expression(("-(x[1]-0.5)", "(x[0]-0.5)"), domain=mesh,degree=2)
 
 bc = DirichletBC(V, Constant(0.0), DomainBoundary())
 
@@ -36,7 +38,8 @@ u0 = Function(V)
 u0 = interpolate(ic, V)
 
 # STABILIZATION
-h = CellSize(mesh)
+from dolfin.function.specialfunctions import CellDiameter
+h = CellDiameter(mesh)
 n = FacetNormal(mesh)
 theta = Constant(1.0)
 
@@ -59,7 +62,7 @@ A = (1 / dt) * inner(u, v) * dx - (1 / dt) * inner(u0, v) * dx + theta * a1 + (1
 F = A + r
 
 # Create files for storing results
-file = File("results_%s/u.xdmf" % (fileName))
+# file = File("results_%s/u.xdmf" % (fileName))
 
 u = Function(V)
 ffc_options = {"optimize": True, "quadrature_degree": 8}
@@ -72,18 +75,19 @@ u.rename("u", "u")
 # Time-stepping
 t = 0.0
 
-file << u
+#file << u
 
 while t < t_end:
-    print
-    "t =", t, "end t=", t_end
+    print("t =", t, "end t=", t_end)
 
     # Compute
     solver.solve()
     plot(u)
     # Save to file
-    file << u
+    #file << u
 
     # Move to next time step
     u0.assign(u)
     t += dt
+
+qq = 0
